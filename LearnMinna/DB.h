@@ -52,5 +52,8 @@ public:
 
 	SQLHSTMT search_hiragana(CONST WCHAR* PWCHAR);
 	void display_hiragana(CONST WCHAR* PWCHAR);
+	SQLHSTMT search_kanji(CONST WCHAR* pwstr);
+	void display_kanji(CONST WCHAR* PWCHAR);
+
 };
 

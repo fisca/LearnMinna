@@ -24,12 +24,16 @@ void DB::GetConfig()
 
 	if (!ifstream(filePath))
 	{
-		wchar_t lm[MAX_PATH];
-		swprintf_s(lm, L"File %ws not found!", _config_file);
-		MessageBoxW(_hwnd, lm, L"Fild Not Found!", MB_ICONWARNING | MB_OK);
-		wstring ws(lm);
-		string str(ws.begin(), ws.end());
-		Log::Info(str.c_str());
+		//wchar_t lm[MAX_PATH];
+		//swprintf_s(lm, L"File %ws not found!", _config_file);
+		//MessageBoxW(_hwnd, lm, L"Fild Not Found!", MB_ICONWARNING | MB_OK);
+		//wstring ws(lm);
+		//string str(ws.begin(), ws.end());
+
+		char lg[MAX_PATH];
+		sprintf_s(lg, "File %ws not found!", _config_file);
+		MessageBoxA(_hwnd, lg, "File Not Found!", MB_ICONWARNING | MB_OK);
+		Log::Info(lg);
 		return;
 	}
 
@@ -38,10 +42,11 @@ void DB::GetConfig()
 	GetPrivateProfileStringW(L"SQLServer", L"pwd", L"", _pwd, MAX_PATH, filePath);
 	GetPrivateProfileStringW(L"SQLServer", L"database", L"", _database, MAX_PATH, filePath);
 
-	wstring ws(filePath);
-	string strFilePath(ws.begin(), ws.end());
+	//wstring ws(filePath);
+	//string strFilePath(ws.begin(), ws.end());
 	char file_path[MAX_PATH];
-	strcpy_s(file_path, strFilePath.c_str());
+	//strcpy_s(file_path, strFilePath.c_str());
+	sprintf_s(file_path, "%ws", filePath);
 
 	//--- Config
 	GetPrivateProfileStringA("LogPath", "log_path", "", _log_file_path, 300, file_path);
@@ -200,3 +205,61 @@ void DB::display_hiragana(CONST WCHAR* pwstr)
 		//cout << whrgn << " " << wktkn << endl;
 	}
 }
+
+SQLHSTMT DB::search_kanji(CONST WCHAR* pwstr)
+{
+	WCHAR wqry[256] = L"select * from lm_kanji ";
+	if (pwstr != NULL && pwstr[0] != L'\0' && pwstr != L"")
+	{
+		lstrcat(wqry, L"where character = N'");
+		lstrcat(wqry, pwstr);
+		lstrcat(wqry, L"' ");
+	}
+
+	SQLHSTMT hstmt;
+	SQLINTEGER cbSearchStr = SQL_NTS;
+
+	SQLRETURN sret = SQLAllocHandle(SQL_HANDLE_STMT, sqlconnectionhandle, &hstmt);
+	if (sret != SQL_SUCCESS)
+	{
+		HandleDiagnosticRecord(hstmt, SQL_HANDLE_STMT, sret);
+		Log::Info("search_kanji SQLAllocHandle() failed");
+		return NULL;
+	}
+
+	sret = SQLPrepare(hstmt, wqry, SQL_NTS);
+	if (sret != SQL_SUCCESS)
+	{
+		HandleDiagnosticRecord(hstmt, SQL_HANDLE_STMT, sret);
+		Log::Info("search_kanji SQLPrepare() failed");
+		return NULL;
+	}
+
+	sret = SQLExecute(hstmt);
+	if (sret != SQL_SUCCESS)
+	{
+		HandleDiagnosticRecord(hstmt, SQL_HANDLE_STMT, sret);
+		Log::Info("search_kanji SQLExecute() failed");
+		return 0;
+	}
+
+	return hstmt;
+}
+
+void DB::display_kanji(CONST WCHAR* pwstr)
+{
+	HSTMT hstmt = search_kanji(pwstr);
+	while (SQLFetch(hstmt) == SQL_SUCCESS)
+	{
+		WCHAR wrmj[5], whrgn[50], wktkn[50], wmsg[150];
+
+		SQLGetData(hstmt, 2, SQL_C_WCHAR, wrmj, 5, NULL);
+		SQLGetData(hstmt, 3, SQL_C_WCHAR, whrgn, 50, NULL);
+		SQLGetData(hstmt, 4, SQL_C_WCHAR, wktkn, 150, NULL);
+
+		wsprintf(wmsg, L"%ws %ws %ws", wrmj, whrgn, wktkn);
+		MessageBoxW(NULL, wmsg, L"Search Kanji", 0);
+		//cout << whrgn << " " << wktkn << endl;
+	}
+}
+

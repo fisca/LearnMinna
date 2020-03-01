@@ -35,7 +35,6 @@ class Log {
 		{
 			char lg[MAX_PATH];
 			sprintf_s(lg, "File %s not found!", CONFIG_FILE);
-			Log::Info(lg);
 			lstrcpyA(log_path, logPath);
 			return;
 		}
