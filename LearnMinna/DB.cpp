@@ -208,12 +208,18 @@ void DB::display_hiragana(CONST WCHAR* pwstr)
 
 SQLHSTMT DB::search_kanji(CONST WCHAR* pwstr)
 {
-	WCHAR wqry[256] = L"select * from lm_kanji ";
+	WCHAR wqry[500] = L"select * from lm_kanji ";
 	if (pwstr != NULL && pwstr[0] != L'\0' && pwstr != L"")
 	{
 		lstrcat(wqry, L"where character = N'");
 		lstrcat(wqry, pwstr);
-		lstrcat(wqry, L"' ");
+		lstrcat(wqry, L"' or onyomi like '%' + N'");
+		lstrcat(wqry, pwstr);
+		lstrcat(wqry, L"' + '%' or kunyomi like '%' + N'");
+		lstrcat(wqry, pwstr);
+		lstrcat(wqry, L"' + '%' or meaning like '%' + N'");
+		lstrcat(wqry, pwstr);
+		lstrcat(wqry, L"' + '%' ");
 	}
 
 	SQLHSTMT hstmt;
@@ -223,7 +229,7 @@ SQLHSTMT DB::search_kanji(CONST WCHAR* pwstr)
 	if (sret != SQL_SUCCESS)
 	{
 		HandleDiagnosticRecord(hstmt, SQL_HANDLE_STMT, sret);
-		Log::Info("search_kanji SQLAllocHandle() failed");
+		Log::Info("search_kanji SQLAllocHandle failed");
 		return NULL;
 	}
 
@@ -231,7 +237,7 @@ SQLHSTMT DB::search_kanji(CONST WCHAR* pwstr)
 	if (sret != SQL_SUCCESS)
 	{
 		HandleDiagnosticRecord(hstmt, SQL_HANDLE_STMT, sret);
-		Log::Info("search_kanji SQLPrepare() failed");
+		Log::Info("search_kanji SQLPrepare failed");
 		return NULL;
 	}
 
@@ -239,7 +245,7 @@ SQLHSTMT DB::search_kanji(CONST WCHAR* pwstr)
 	if (sret != SQL_SUCCESS)
 	{
 		HandleDiagnosticRecord(hstmt, SQL_HANDLE_STMT, sret);
-		Log::Info("search_kanji SQLExecute() failed");
+		Log::Info("search_kanji SQLExecute failed");
 		return 0;
 	}
 

@@ -8,6 +8,8 @@
 #include <commctrl.h>
 #pragma comment (lib, "comctl32.lib")
 
+#include <atlstr.h>
+
 #define MAX_LOADSTRING 100
 #define ID_TABCTRL 1
 #define ID_EDIT 2
@@ -185,7 +187,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         SendMessageW(ghEditSearch, WM_SETFONT, (WPARAM)hFont, TRUE);
         ghBtnSearch = CreateWindowW(L"Button", L"Search", WS_CHILD, 94, 40, 100, 23, hWnd, (HMENU)BTN_SEARCH_KANJI, NULL, NULL);
         SendMessageW(ghBtnSearch, WM_SETFONT, (WPARAM)hFont, TRUE);
-        ghStaticKanji = CreateWindow(L"Static", L"", WS_CHILD | WS_BORDER | ES_LEFT, 11, 70, 200, 100, hTab, NULL, NULL, NULL, NULL);
+        ghStaticKanji = CreateWindowW(L"Static", L"", WS_CHILD | WS_BORDER | ES_LEFT, 11, 70, 200, 300, hTab, NULL, NULL, NULL, NULL);
         SendMessageW(ghStaticKanji, WM_SETFONT, (WPARAM)hFont, TRUE);
 
 
@@ -407,19 +409,27 @@ void SearchKanji()
 
     HSTMT hstmt = db.search_kanji(search);
     int rowCount = 0;
+    WCHAR lmsg[800] = L"\0";
     while (SQLFetch(hstmt) == SQL_SUCCESS)
     {
         rowCount++;
 
-        WCHAR wrmj[5], whrgn[50], wktkn[50], wmsg[150];
+        WCHAR wrmj[5], whrgn[50], wktkn[50], wmsg[400];
 
         SQLGetData(hstmt, 2, SQL_C_WCHAR, wrmj, 5, NULL);
         SQLGetData(hstmt, 3, SQL_C_WCHAR, whrgn, 50, NULL);
         SQLGetData(hstmt, 4, SQL_C_WCHAR, wktkn, 150, NULL);
 
-        wsprintf(wmsg, L"%ws %ws %ws", wrmj, whrgn, wktkn);
-        SetWindowTextW(ghStaticKanji, wmsg);
+        wnsprintfW(wmsg, 400, L"%ws %ws %ws \n", wrmj, whrgn, wktkn);
+
+        /*wstring ws(wmsg);
+        string str(ws.begin(), ws.end());
+        msg.append(str); */       
+
+        lstrcatW(lmsg, wmsg);
     }
+
+    SetWindowTextW(ghStaticKanji, lmsg);
 
     if (rowCount == 0)
         SetWindowTextW(ghStaticKanji, L"Kanji not found");

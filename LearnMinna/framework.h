@@ -35,5 +35,5 @@ using namespace std;
 
 #define APP_NAME "LearnMinna"
 #define APP_NAME_SIZ 50
-#define APP_VERSION "1.0.0.0"
+#define APP_VERSION "1.1.0.1"
 #define CONFIG_FILE APP_NAME ## ".ini"
